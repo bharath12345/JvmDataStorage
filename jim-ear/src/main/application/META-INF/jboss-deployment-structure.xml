@@ -2,6 +2,7 @@
 <jboss-deployment-structure>
     <deployment>
         <dependencies>
+            <module name="com.appnomic.configuration" />
         </dependencies>
     </deployment>
 </jboss-deployment-structure>

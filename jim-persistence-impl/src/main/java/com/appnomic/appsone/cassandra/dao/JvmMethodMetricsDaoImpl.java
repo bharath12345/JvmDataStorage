@@ -1,7 +1,6 @@
 package com.appnomic.appsone.cassandra.dao;
 
 import com.appnomic.appsone.cassandra.entity.MethodMetrics;
-import com.appnomic.appsone.cassandra.query.CassandraQueryBuilder;
 import com.datastax.driver.core.Row;
 
 import javax.ejb.Remote;
@@ -16,14 +15,16 @@ import java.util.List;
 
 @Stateless(mappedName = "JvmMethodMetricsDaoImpl")
 @Remote(JvmMethodMetricsDAO.class)
-public class JvmMethodMetricsDaoImpl extends AbstractDAO implements JvmMethodMetricsDAO {
+public class JvmMethodMetricsDaoImpl extends CassandraDAO implements JvmMethodMetricsDAO {
 
-    public JvmMethodMetricsDaoImpl(String cassandraHost, int cassandraPort, String keyspaceName) {
-        super(cassandraHost, cassandraPort, keyspaceName);
+    public JvmMethodMetricsDaoImpl() {
+        keyspace = "JvmMethodMetrics";
+        table = "JvmMethodMetricsRaw";
     }
 
     public List<MethodMetrics> findAll() {
-        List<Row> rows = session.execute(CassandraQueryBuilder.getAll(null, null)).all();
+        List<Row> rows = getAll();
+        // convert raw rows to MethodMetrics objects
         return null;
     }
 
