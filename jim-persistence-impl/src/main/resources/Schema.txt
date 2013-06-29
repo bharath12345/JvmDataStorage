@@ -1,0 +1,213 @@
+*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~
+Store the CQL equivalent of all tables in this file
+Author: Bharadwaj N
+Date: 28th June 2013
+Reviewer: Sumanth N
+
+Table of Contents
+
+    1. Keyspace
+    2. Tables (Column Families)
+        2.1 JvmMetrics
+            - Description
+            - Queries
+        2.2 JvmThreadMetrics
+
+        2.3 JvmMemoryMetrics
+        2.4 JvmDataSourceMetrics
+        2.4 JvmMethodMetrics
+
+
+*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~
+
+1. Keyspace
+
+    CREATE KEYSPACE JvmMetrics WITH replication = {'class': 'SimpleStrategy', 'replication_factor' : 1};
+    CREATE KEYSPACE JvmThreadMetrics WITH replication = {'class': 'SimpleStrategy', 'replication_factor' : 1};
+    CREATE KEYSPACE JvmMemoryMetrics WITH replication = {'class': 'SimpleStrategy', 'replication_factor' : 1};
+    CREATE KEYSPACE JvmDataSourceMetrics WITH replication = {'class': 'SimpleStrategy', 'replication_factor' : 1};
+    CREATE KEYSPACE JvmMethodMetrics WITH replication = {'class': 'SimpleStrategy', 'replication_factor' : 1};
+
+    Brief Description
+    ~~~~~~~~~~~~~~~~~
+        * Every keyspace holds Raw and Roll-up tables of its type
+        *
+
+
+2. Tables (Column Families)
+
+    JvmMetrics KEYSPACE
+    -------------------
+
+    CREATE TABLE JvmMetricsRaw (
+      jvm_id varchar,
+      date varchar,
+      ts timestamp,                   // int - time of day instead of timestamp
+      total_started_threads bigint,   // useless
+      total_live_threads int,         // rename
+      total_daemon_threads int,       // useless
+      total_peak_threads int,         // useless
+      PRIMARY KEY (jvm_id, date)
+    );
+
+        Brief Description
+        ~~~~~~~~~~~~~~~~~
+            * Row key is a combination of JVM ID and date (20130628 for 28th June 2013)
+            * There should be a upper threshold for number of days for which 'raw' data is stored would be, say 1 month (30 days)
+            * Following are the roll-up tables to be created alongwith
+                - Hourly Roll-up:  For 2 months  => 24 * 60 = 1440 columns. One row per JVM
+                - Daily Roll-up:   For 6 months  => 180 columns. One row per JVM
+                - Weekly Roll-up:  For 50 weeks  => 50 columns. One row per JVM
+                - Monthly Roll-up: For 24 months => 24 columns. One row per JVM
+            * All the inserts into the Roll-up table should have a TTL (per above table)
+
+        Roll-up tables
+        ~~~~~~~~~~~~~~
+            CREATE TABLE JvmMetricsHourly (
+                        jvm_id varchar,
+                        hour int,
+                        live_threads_counter int,
+                        live_threads_avg float,
+                        PRIMARY KEY (jvm_id)
+                      );
+
+            CREATE TABLE JvmMetricsDaily (
+                        jvm_id varchar,
+                        day int,
+                        total_started_threads bigint,
+                        total_live_threads int,
+                        total_daemon_threads int,
+                        total_peak_threads int,
+                        PRIMARY KEY (jvm_id)
+                      );
+
+            CREATE TABLE JvmMetricsWeekly (
+                        jvm_id varchar,
+                        week int,
+                        total_started_threads bigint,
+                        total_live_threads int,
+                        total_daemon_threads int,
+                        total_peak_threads int,
+                        PRIMARY KEY (jvm_id)
+                      );
+
+            CREATE TABLE JvmMetricsMonthly (
+                        jvm_id varchar,
+                        month int,
+                        total_started_threads bigint,
+                        total_live_threads int,
+                        total_daemon_threads int,
+                        total_peak_threads int,
+                        PRIMARY KEY (jvm_id)
+                      );
+
+
+    JvmThreadMetrics KEYSPACE  - Are there any usecases which support the collection of this metric? Else, drop the whole thing.
+    -------------------------
+
+    CREATE TABLE JvmThreadMetricsRaw (
+          jvm_id varchar,
+          date varchar,
+          ts timestamp,
+          thread_id bigint,
+          thread_name varchar,
+          lock_name varchar,
+          lock_owner_id int,
+          lock_owner_name varchar,
+          blocked_count int,
+          blocked_time int,
+          waited_count int,
+          waited_time int,
+          is_suspended boolean,
+          PRIMARY KEY (jvm_id, date)
+        );
+
+    CREATE INDEX jvm_thread_name ON JvmThreadMetricsRaw (thread_name);
+    CREATE INDEX jvm_thread_id ON JvmThreadMetricsRaw (thread_id);
+
+
+
+
+    JvmMemoryMetrics KEYSPACE
+    -------------------------
+
+    * Code Cache, Eden Space, Tenured, Perm, Survivor - collect every 10 minutes
+    * Heap and Non-Heap - collect every minute
+    * Should the Heap Memory table ALSO contain the thread count - the JvmMetrics table, with only thread-count as
+        its data point is probably TOO MUCH meta for very little data
+
+    CREATE TABLE JvmHeapMemoryMetricsRaw (
+              jvm_id varchar,
+              date varchar,
+              ts timestamp,
+              committed bigint,
+              max bigint,
+              used bigint,
+              PRIMARY KEY (jvm_id, date)
+            );
+
+    CREATE TABLE JvmNonHeapMemoryMetricsRaw (
+              jvm_id varchar,
+              date varchar,
+              ts timestamp,
+              committed bigint,
+              max bigint,
+              used bigint,
+              PRIMARY KEY (jvm_id, date)
+            );
+
+
+    JvmDataSourceMetrics KEYSPACE
+    -----------------------------
+
+    * how big is the data-source name?
+    * if data-source string is big, then, instead of storing big strings for index - use data-source-ID
+    * Should data-source be collected every minute? Maybe 2-minutes is not bad after all - brings down the cost of collection
+        on the agent side as well
+
+    CREATE TABLE JvmDataSourceMetricsRaw (
+                  jvm_id varchar,
+                  date varchar,
+                  ts timestamp,
+                  datasource_name varchar,
+                  pool_size bigint,
+                  free_pool_size bigint,
+                  usetime bigint,
+                  PRIMARY KEY (jvm_id, date)
+                );
+
+    CREATE INDEX jvm_datasource_name ON JvmDataSourceMetricsRaw (datasource_name);
+
+
+
+    JvmMethodMetrics KEYSPACE
+    -------------------------
+
+    * keep a separate table for mapping method ID to Name
+
+    CREATE TABLE JvmMethodIdNameMap (
+                          jvm_id varchar,
+                          method_id bigint,
+                          method_name varchar,
+                          PRIMARY KEY (jvm_id)
+                        );
+
+    CREATE TABLE JvmMethodMetricsRaw (
+                      jvm_id varchar,
+                      date varchar,
+                      ts timestamp,
+                      method_id bigint,
+                      invocations bigint,
+                      response_time bigint,
+                      PRIMARY KEY (jvm_id, date)
+                    );
+
+    CREATE INDEX jvm_method_name ON JvmMethodMetricsRaw (method_id);
+
+    Queries
+    ~~~~~~~
+
+    1) last one hour, which methods among {A, B, C or *} took the most response_time?
+    2) trend queries - column slice over a time range
+    3)
+

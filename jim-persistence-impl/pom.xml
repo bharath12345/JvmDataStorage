@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.appnomic.appsone.jim.beta</groupId>
+        <artifactId>JvmDataStorage</artifactId>
+        <version>1.0</version>
+    </parent>
+
+    <artifactId>jim-persistence-impl</artifactId>
+    <packaging>ejb</packaging>
+    <name>Java Intrusive Monitoring Persistence Services</name>
+
+    <build>
+        <finalName>${project.artifactId}</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-ejb-plugin</artifactId>
+                <version>2.3</version>
+                <configuration>
+                    <ejbVersion>3.0</ejbVersion>
+                    <!--
+                         <generateClient>true</generateClient>
+                 -->
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+
+        <!-- ASTYANAX ********************************************************************************************** -->
+        <!--dependency>
+            <groupId>com.netflix.astyanax</groupId>
+            <artifactId>astyanax-core</artifactId>
+            <version>${astyanax.client}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.netflix.astyanax</groupId>
+            <artifactId>astyanax-thrift</artifactId>
+            <version>${astyanax.client}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.netflix.astyanax</groupId>
+            <artifactId>astyanax-cassandra</artifactId>
+            <version>${astyanax.client}</version>
+        </dependency-->
+
+        <!-- CQL3 NATIVE DRIVER ************************************************************************************ -->
+        <dependency>
+            <groupId>com.datastax.cassandra</groupId>
+            <artifactId>cassandra-driver-core</artifactId>
+            <version>${datastax.cassandra.native.driver}</version>
+        </dependency>
+
+        <!-- HECTOR ************************************************************************************************ -->
+        <!--dependency>
+            <groupId>me.prettyprint</groupId>
+            <artifactId>hector-core</artifactId>
+            <version>${hector.client}</version>
+        </dependency>
+        <dependency>
+            <groupId>me.prettyprint</groupId>
+            <artifactId>hector-object-mapper</artifactId>
+            <version>${hector.orm}</version>
+        </dependency-->
+
+        <!-- EJB *************************************************************************************************** -->
+        <dependency>
+            <groupId>org.jboss.spec.javax.ejb</groupId>
+            <artifactId>jboss-ejb-api_3.1_spec</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- JIM DEPENDENCY SERVICES ******************************************************************************* -->
+        <dependency>
+            <groupId>com.appnomic.appsone.jim.beta</groupId>
+            <artifactId>jim-persistence-api</artifactId>
+            <version>1.0</version>
+        </dependency>
+
+    </dependencies>
+</project>
