@@ -67,11 +67,20 @@ public class CassandraQueryBuilder {
         return selectAll.from(keyspace, table);
     }
 
+    public static PreparedStatement getPreparedStatement(String keyspace, String cql) {
+        session = cluster.connect(keyspace);
+        return session.prepare(cql);
+    }
+
     public static ResultSet execute(Query query) {
         return session.execute(query);
     }
 
-    public static Session createKeyspaces() {
+    public static void executeBoundStatement(BoundStatement boundStatement) {
+        session.execute(boundStatement);
+    }
+
+    public static void createKeyspaces() {
         session = cluster.connect("system");
 
         String JvmMethodMetrics = "JvmMethodMetrics";
@@ -80,8 +89,6 @@ public class CassandraQueryBuilder {
         session.shutdown();
 
         session = cluster.connect(JvmMethodMetrics);
-
-        return session;
     }
 
     public static void createTables() {

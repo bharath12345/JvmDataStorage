@@ -1,6 +1,6 @@
 package com.appnomic.appsone.cassandra.dao;
 
-import com.appnomic.appsone.cassandra.entity.MethodMetrics;
+import com.appnomic.appsone.cassandra.entity.JvmMethodMetricsRaw;
 
 import javax.ejb.Remote;
 import java.util.List;
@@ -14,7 +14,11 @@ import java.util.List;
 @Remote
 public interface JvmMethodMetricsDAO extends JimDao {
 
-    public List<MethodMetrics> findAll();
-    public List<MethodMetrics> findInTimeRange();
+    public List<JvmMethodMetricsRaw> findAll();
+    public List<JvmMethodMetricsRaw> findAllInTimeRange(long epochStartTime, long epochEndTime);
+
+    public List<JvmMethodMetricsRaw> findForJvm(int jvmId);
+    public List<JvmMethodMetricsRaw> findInTimeRangeForJvm(int jvmId, long epochStartTime, long epochEndTime);
+
 
 }

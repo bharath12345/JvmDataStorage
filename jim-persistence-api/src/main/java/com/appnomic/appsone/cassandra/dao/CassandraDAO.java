@@ -1,8 +1,7 @@
 package com.appnomic.appsone.cassandra.dao;
 
 import com.appnomic.appsone.cassandra.query.CassandraQueryBuilder;
-import com.datastax.driver.core.Query;
-import com.datastax.driver.core.Row;
+import com.datastax.driver.core.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,6 +18,7 @@ public class CassandraDAO {
 
     protected String keyspace;
     protected String table;
+    protected String cqlInsert;
 
     protected List<Row> getAll() {
         CassandraQueryBuilder.connect();
@@ -27,4 +27,20 @@ public class CassandraDAO {
         CassandraQueryBuilder.shutdown();
         return rows;
     }
+
+    protected PreparedStatement getPreparedStatementNoShutdown(String cql) {
+        CassandraQueryBuilder.connect();
+        PreparedStatement preparedStatement = CassandraQueryBuilder.getPreparedStatement(keyspace, cql);
+        return preparedStatement;
+    }
+
+    protected void executeBoundStatement(BoundStatement boundStatement) {
+        CassandraQueryBuilder.executeBoundStatement(boundStatement);
+    }
+
+    protected void finishBoundExecution() {
+        CassandraQueryBuilder.shutdown();
+    }
+
+
 }

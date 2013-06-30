@@ -25,13 +25,19 @@ Table of Contents
         * Every keyspace holds Raw and Roll-up tables of its type
         * Keep stores as small - as few strings as possible (map strings to an ID in a separate table)
         * Row key is a combination of JVM ID and date (20130628 for 28th June 2013)
-        * There should be a upper threshold for number of days for which 'raw' data is stored would be, say 1 month (30 days)
-        * Following are the roll-up tables to be created alongwith
-                - Hourly Roll-up:  For 2 months  => 24 * 60 = 1440 columns. One row per JVM
-                - Daily Roll-up:   For 6 months  => 180 columns. One row per JVM
-                - Weekly Roll-up:  For 50 weeks  => 50 columns. One row per JVM
-                - Monthly Roll-up: For 24 months => 24 columns. One row per JVM
+        * Upper threshold for number of days for which 'raw' data is stored would be, say 1 month (30 days)
+        * Following are the roll-up tables to be created along with
+            - All roll-up tables have one row per JVM - jvm_id is the primary key
+            - Hourly  Roll-up: 60 days,  2 months  => 24 * 60 = 1440 columns
+            - Daily   Roll-up: 180 days, 6 months  => 180 columns
+            - Weekly  Roll-up: 350 days, 50 weeks  => 50  columns
+            - Monthly Roll-up: 720 days, 24 months => 24  columns
         * All the inserts into the Roll-up table should have a TTL (per above table)
+            - Raw:             30  days => 30 * 24 * 60 * 60  => 2,592,000
+            - Hourly  Roll-up: 60  days => 2 * 2,592,000      => 5,184,000
+            - Daily   Roll-up: 180 days => 3 * 5,184,000      => 15,552,000
+            - Weekly  Roll-up: 350 days => 350 * 24 * 60 * 60 => 30,240,000
+            - Monthly Roll-up: 720 days => 4 * 15,552,000     => 62,208,000
 
 *~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~
 
@@ -53,7 +59,7 @@ Table of Contents
     CREATE TABLE JvmMetricsRaw (
       jvm_id int,
       date varchar,
-      ts timestamp,                   // int - time of day instead of timestamp
+      day_time int,                   // int - time of day instead of timestamp
       total_started_threads bigint,   // useless
       total_live_threads int,         // rename
       total_daemon_threads int,       // useless
@@ -109,7 +115,7 @@ Table of Contents
     CREATE TABLE JvmThreadMetricsRaw (
           jvm_id int,
           date varchar,
-          ts timestamp,
+          day_time int,
           thread_id bigint,
           thread_name varchar,
           lock_name varchar,
@@ -139,7 +145,7 @@ Table of Contents
     CREATE TABLE JvmHeapMemoryMetricsRaw (
               jvm_id int,
               date varchar,
-              ts timestamp,
+              day_time int,
               committed bigint,
               max bigint,
               used bigint,
@@ -149,7 +155,7 @@ Table of Contents
     CREATE TABLE JvmNonHeapMemoryMetricsRaw (
               jvm_id int,
               date varchar,
-              ts timestamp,
+              day_time int,
               committed bigint,
               max bigint,
               used bigint,
@@ -169,7 +175,7 @@ Table of Contents
     CREATE TABLE JvmDataSourceMetricsRaw (
                   jvm_id int,
                   date varchar,
-                  ts timestamp,
+                  day_time int,
                   datasource_name varchar,
                   pool_size bigint,
                   free_pool_size bigint,
@@ -187,30 +193,63 @@ Table of Contents
     * keep a separate table for mapping method ID to Name
 
     Raw Trend Query Tables
-    ~~~~~~~~~~~~~~~~~~
-
+    ~~~~~~~~~~~~~~~~~~~~~~
     CREATE TABLE JvmMethodIdNameMap (
-                          jvm_id int,
-                          method_id bigint,
-                          method_name varchar,
-                          PRIMARY KEY (jvm_id)
-                        );
+        jvm_id int,
+        method_id bigint,
+        method_name varchar,
+        PRIMARY KEY (jvm_id)
+    );
 
     CREATE TABLE JvmMethodMetricsRaw (
-                      jvm_id int,
-                      date varchar,
-                      ts timestamp,
-                      method_id bigint,
-                      invocations bigint,
-                      response_time bigint,
-                      PRIMARY KEY (jvm_id, date)
-                    );
+        jvm_id int,
+        date varchar,
+        day_time int,
+        method_id bigint,
+        invocations bigint,
+        response_time float,
+        PRIMARY KEY (jvm_id, date)
+    );
 
     CREATE INDEX jvm_method_name ON JvmMethodMetricsRaw (method_id);
 
     Trend Query Roll-up Tables
-    ~~~~~~~~~~~~~~
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~
+    CREATE TABLE JvmMethodMetricsHourly (
+        jvm_id int,
+        hour int,
+        method_id bigint,
+        invocations bigint,
+        response_time float,
+        PRIMARY KEY (jvm_id)
+    );
 
+    CREATE TABLE JvmMethodMetricsDaily (
+        jvm_id int,
+        day int,
+        method_id bigint,
+        invocations bigint,
+        response_time float,
+        PRIMARY KEY (jvm_id)
+    );
+
+    CREATE TABLE JvmMethodMetricsWeekly (
+        jvm_id int,
+        week int,
+        method_id bigint,
+        invocations bigint,
+        response_time float,
+        PRIMARY KEY (jvm_id)
+    );
+
+    CREATE TABLE JvmMethodMetricsMonthly (
+        jvm_id int,
+        month int,
+        method_id bigint,
+        invocations bigint,
+        response_time float,
+        PRIMARY KEY (jvm_id)
+    );
 
     TopN Query Tables
     ~~~~~~~~~~~~~~~~~
