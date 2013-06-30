@@ -27,6 +27,7 @@ public class CassandraQueryBuilder {
     static {
         connect();
         createKeyspaces();
+        createTables();
         createIndexes();
         shutdown();
     }

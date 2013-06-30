@@ -5,22 +5,37 @@ Date: 28th June 2013
 Reviewer: Sumanth N
 
 Table of Contents
+-----------------
 
-    1. Keyspace
-    2. Tables (Column Families)
-        2.1 JvmMetrics
+    1. Brief Description
+    2. Keyspace
+    3. Tables (Column Families)
+        3.1 JvmMetrics
             - Description
             - Queries
-        2.2 JvmThreadMetrics
+        3.2 JvmThreadMetrics
 
-        2.3 JvmMemoryMetrics
-        2.4 JvmDataSourceMetrics
-        2.4 JvmMethodMetrics
-
+        3.3 JvmMemoryMetrics
+        3.4 JvmDataSourceMetrics
+        3.4 JvmMethodMetrics
 
 *~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~
 
-1. Keyspace
+1. Brief Description
+        * Every keyspace holds Raw and Roll-up tables of its type
+        * Keep stores as small - as few strings as possible (map strings to an ID in a separate table)
+        * Row key is a combination of JVM ID and date (20130628 for 28th June 2013)
+        * There should be a upper threshold for number of days for which 'raw' data is stored would be, say 1 month (30 days)
+        * Following are the roll-up tables to be created alongwith
+                - Hourly Roll-up:  For 2 months  => 24 * 60 = 1440 columns. One row per JVM
+                - Daily Roll-up:   For 6 months  => 180 columns. One row per JVM
+                - Weekly Roll-up:  For 50 weeks  => 50 columns. One row per JVM
+                - Monthly Roll-up: For 24 months => 24 columns. One row per JVM
+        * All the inserts into the Roll-up table should have a TTL (per above table)
+
+*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~
+
+2. Keyspace
 
     CREATE KEYSPACE JvmMetrics WITH replication = {'class': 'SimpleStrategy', 'replication_factor' : 1};
     CREATE KEYSPACE JvmThreadMetrics WITH replication = {'class': 'SimpleStrategy', 'replication_factor' : 1};
@@ -28,19 +43,15 @@ Table of Contents
     CREATE KEYSPACE JvmDataSourceMetrics WITH replication = {'class': 'SimpleStrategy', 'replication_factor' : 1};
     CREATE KEYSPACE JvmMethodMetrics WITH replication = {'class': 'SimpleStrategy', 'replication_factor' : 1};
 
-    Brief Description
-    ~~~~~~~~~~~~~~~~~
-        * Every keyspace holds Raw and Roll-up tables of its type
-        *
+*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~
 
-
-2. Tables (Column Families)
+3. Tables (Column Families)
 
     JvmMetrics KEYSPACE
     -------------------
 
     CREATE TABLE JvmMetricsRaw (
-      jvm_id varchar,
+      jvm_id int,
       date varchar,
       ts timestamp,                   // int - time of day instead of timestamp
       total_started_threads bigint,   // useless
@@ -50,21 +61,10 @@ Table of Contents
       PRIMARY KEY (jvm_id, date)
     );
 
-        Brief Description
-        ~~~~~~~~~~~~~~~~~
-            * Row key is a combination of JVM ID and date (20130628 for 28th June 2013)
-            * There should be a upper threshold for number of days for which 'raw' data is stored would be, say 1 month (30 days)
-            * Following are the roll-up tables to be created alongwith
-                - Hourly Roll-up:  For 2 months  => 24 * 60 = 1440 columns. One row per JVM
-                - Daily Roll-up:   For 6 months  => 180 columns. One row per JVM
-                - Weekly Roll-up:  For 50 weeks  => 50 columns. One row per JVM
-                - Monthly Roll-up: For 24 months => 24 columns. One row per JVM
-            * All the inserts into the Roll-up table should have a TTL (per above table)
-
         Roll-up tables
         ~~~~~~~~~~~~~~
             CREATE TABLE JvmMetricsHourly (
-                        jvm_id varchar,
+                        jvm_id int,
                         hour int,
                         live_threads_counter int,
                         live_threads_avg float,
@@ -72,7 +72,7 @@ Table of Contents
                       );
 
             CREATE TABLE JvmMetricsDaily (
-                        jvm_id varchar,
+                        jvm_id int,
                         day int,
                         total_started_threads bigint,
                         total_live_threads int,
@@ -82,7 +82,7 @@ Table of Contents
                       );
 
             CREATE TABLE JvmMetricsWeekly (
-                        jvm_id varchar,
+                        jvm_id int,
                         week int,
                         total_started_threads bigint,
                         total_live_threads int,
@@ -92,7 +92,7 @@ Table of Contents
                       );
 
             CREATE TABLE JvmMetricsMonthly (
-                        jvm_id varchar,
+                        jvm_id int,
                         month int,
                         total_started_threads bigint,
                         total_live_threads int,
@@ -101,12 +101,13 @@ Table of Contents
                         PRIMARY KEY (jvm_id)
                       );
 
+*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~
 
     JvmThreadMetrics KEYSPACE  - Are there any usecases which support the collection of this metric? Else, drop the whole thing.
     -------------------------
 
     CREATE TABLE JvmThreadMetricsRaw (
-          jvm_id varchar,
+          jvm_id int,
           date varchar,
           ts timestamp,
           thread_id bigint,
@@ -125,8 +126,7 @@ Table of Contents
     CREATE INDEX jvm_thread_name ON JvmThreadMetricsRaw (thread_name);
     CREATE INDEX jvm_thread_id ON JvmThreadMetricsRaw (thread_id);
 
-
-
+*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~
 
     JvmMemoryMetrics KEYSPACE
     -------------------------
@@ -137,7 +137,7 @@ Table of Contents
         its data point is probably TOO MUCH meta for very little data
 
     CREATE TABLE JvmHeapMemoryMetricsRaw (
-              jvm_id varchar,
+              jvm_id int,
               date varchar,
               ts timestamp,
               committed bigint,
@@ -147,7 +147,7 @@ Table of Contents
             );
 
     CREATE TABLE JvmNonHeapMemoryMetricsRaw (
-              jvm_id varchar,
+              jvm_id int,
               date varchar,
               ts timestamp,
               committed bigint,
@@ -156,6 +156,7 @@ Table of Contents
               PRIMARY KEY (jvm_id, date)
             );
 
+*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~
 
     JvmDataSourceMetrics KEYSPACE
     -----------------------------
@@ -166,7 +167,7 @@ Table of Contents
         on the agent side as well
 
     CREATE TABLE JvmDataSourceMetricsRaw (
-                  jvm_id varchar,
+                  jvm_id int,
                   date varchar,
                   ts timestamp,
                   datasource_name varchar,
@@ -178,22 +179,25 @@ Table of Contents
 
     CREATE INDEX jvm_datasource_name ON JvmDataSourceMetricsRaw (datasource_name);
 
-
+*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~
 
     JvmMethodMetrics KEYSPACE
     -------------------------
 
     * keep a separate table for mapping method ID to Name
 
+    Raw Trend Query Tables
+    ~~~~~~~~~~~~~~~~~~
+
     CREATE TABLE JvmMethodIdNameMap (
-                          jvm_id varchar,
+                          jvm_id int,
                           method_id bigint,
                           method_name varchar,
                           PRIMARY KEY (jvm_id)
                         );
 
     CREATE TABLE JvmMethodMetricsRaw (
-                      jvm_id varchar,
+                      jvm_id int,
                       date varchar,
                       ts timestamp,
                       method_id bigint,
@@ -203,6 +207,49 @@ Table of Contents
                     );
 
     CREATE INDEX jvm_method_name ON JvmMethodMetricsRaw (method_id);
+
+    Trend Query Roll-up Tables
+    ~~~~~~~~~~~~~~
+
+
+    TopN Query Tables
+    ~~~~~~~~~~~~~~~~~
+
+    * data in these tables is kept sorted by maximum (response-time/invocations) to minimum
+    * is a minute-wise table required in this case?
+
+    CREATE TABLE JvmMethodTrendResponseTimeHourly (
+        jvm_id int,
+        method_id bigint,
+        hour int,
+        response_time float
+    );
+
+    CREATE TABLE JvmMethodTrendInvocationHourly (
+        jvm_id int,
+        method_id bigint,
+        hour int,
+        invocations bigint
+    );
+
+    CREATE TABLE JvmMethodTrendResponseTimeDaily (
+    );
+
+    CREATE TABLE JvmMethodTrendInvocationDaily (
+    );
+
+    CREATE TABLE JvmMethodTrendResponseTimeWeekly (
+    );
+
+    CREATE TABLE JvmMethodTrendInvocationWeekly (
+    );
+
+    CREATE TABLE JvmMethodTrendResponseTimeMonthly (
+    );
+
+    CREATE TABLE JvmMethodTrendInvocationMonthly (
+    );
+
 
     Queries
     ~~~~~~~
