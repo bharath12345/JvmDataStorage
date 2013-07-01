@@ -47,8 +47,8 @@ public class JvmMethodIdNameDaoImpl extends CassandraDAO implements JvmMethodIdN
         PreparedStatement preparedStatement = getPreparedStatementNoShutdown(cqlInsert);
         BoundStatement boundStatement = new BoundStatement(preparedStatement);
 
-        long maxMethodId = getMaxId(jvmId);
-        boundStatement.bind(jvmId, methodName, maxMethodId);
+        int maxMethodId = getMaxId(jvmId);
+        boundStatement.bind(jvmId, maxMethodId, methodName);
 
         //System.out.println("statement = " + boundStatement.);
         executeBoundStatement(boundStatement);
@@ -57,11 +57,11 @@ public class JvmMethodIdNameDaoImpl extends CassandraDAO implements JvmMethodIdN
         return maxMethodId;
     }
 
-    public long getMaxId(int jvmId) {
+    public int getMaxId(int jvmId) {
         List<Row> rows = getAllForJvmId(keyspace, table, jvmId);
-        long maxMethodId = -1;
+        int maxMethodId = -1;
         for(Row row: rows) {
-            long methodId = row.getLong(Constants.JvmMethodIdNameMap.method_id.toString());
+            int methodId = row.getInt(Constants.JvmMethodIdNameMap.method_id.toString());
             if(methodId > maxMethodId) {
                 maxMethodId = methodId;
             }
