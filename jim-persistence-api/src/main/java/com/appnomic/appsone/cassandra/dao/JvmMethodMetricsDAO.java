@@ -20,5 +20,6 @@ public interface JvmMethodMetricsDAO extends JimDao {
     public List<JvmMethodMetricsRaw> findForJvm(int jvmId);
     public List<JvmMethodMetricsRaw> findInTimeRangeForJvm(int jvmId, long epochStartTime, long epochEndTime);
 
-
+    public void persistSingle(JvmMethodMetricsRaw jvmMethodMetricsRaw);
+    public void persistList(List<JvmMethodMetricsRaw> jvmMethodMetricsRawList);
 }

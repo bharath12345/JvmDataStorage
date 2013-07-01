@@ -10,5 +10,6 @@ import javax.management.MXBean;
 @MXBean
 public interface JvmMethodMetricsService {
 
+    public void saveMethodStat(int jvmId, long epochTime, String methodName, long invocationCount, float responseTime);
 
 }

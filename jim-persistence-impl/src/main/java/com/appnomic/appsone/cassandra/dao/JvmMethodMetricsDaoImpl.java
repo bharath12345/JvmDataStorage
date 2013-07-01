@@ -93,7 +93,7 @@ public class JvmMethodMetricsDaoImpl extends CassandraDAO implements JvmMethodMe
         return null;  
     }
 
-
+    @Override
     public void persistSingle(JvmMethodMetricsRaw jvmMethodMetricsRaw) {
         PreparedStatement preparedStatement = getPreparedStatementNoShutdown(cqlInsert);
         BoundStatement boundStatement = new BoundStatement(preparedStatement);
@@ -107,6 +107,7 @@ public class JvmMethodMetricsDaoImpl extends CassandraDAO implements JvmMethodMe
         finishBoundExecution();
     }
 
+    @Override
     public void persistList(List<JvmMethodMetricsRaw> jvmMethodMetricsRawList) {
         PreparedStatement preparedStatement = getPreparedStatementNoShutdown(cqlInsert);
         BoundStatement boundStatement = new BoundStatement(preparedStatement);
@@ -120,4 +121,6 @@ public class JvmMethodMetricsDaoImpl extends CassandraDAO implements JvmMethodMe
 
         finishBoundExecution();
     }
+
+
 }

@@ -38,16 +38,18 @@ Table of Contents
             - Daily   Roll-up: 180 days => 3 * 5,184,000      => 15,552,000
             - Weekly  Roll-up: 350 days => 350 * 24 * 60 * 60 => 30,240,000
             - Monthly Roll-up: 720 days => 4 * 15,552,000     => 62,208,000
+        * Is a Jvm-Name (some identifier) to JVM-ID table also ??
+        * Should there be CLASS level stats also??
 
 *~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~
 
 2. Keyspace
 
-    CREATE KEYSPACE JvmMetrics WITH replication = {'class': 'SimpleStrategy', 'replication_factor' : 1};
-    CREATE KEYSPACE JvmThreadMetrics WITH replication = {'class': 'SimpleStrategy', 'replication_factor' : 1};
-    CREATE KEYSPACE JvmMemoryMetrics WITH replication = {'class': 'SimpleStrategy', 'replication_factor' : 1};
+    CREATE KEYSPACE JvmMetrics          WITH replication = {'class': 'SimpleStrategy', 'replication_factor' : 1};
+    CREATE KEYSPACE JvmThreadMetrics    WITH replication = {'class': 'SimpleStrategy', 'replication_factor' : 1};
+    CREATE KEYSPACE JvmMemoryMetrics    WITH replication = {'class': 'SimpleStrategy', 'replication_factor' : 1};
     CREATE KEYSPACE JvmDataSourceMetrics WITH replication = {'class': 'SimpleStrategy', 'replication_factor' : 1};
-    CREATE KEYSPACE JvmMethodMetrics WITH replication = {'class': 'SimpleStrategy', 'replication_factor' : 1};
+    CREATE KEYSPACE JvmMethodMetrics    WITH replication = {'class': 'SimpleStrategy', 'replication_factor' : 1};
 
 *~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~
 

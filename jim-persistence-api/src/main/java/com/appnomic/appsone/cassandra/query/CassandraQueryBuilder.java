@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -21,6 +22,7 @@ public class CassandraQueryBuilder {
     private static Session session;
 
     private static final Builder selectAll = QueryBuilder.select().all();
+    private static final Builder select = QueryBuilder.select();
 
     private static final Logger LOG = LoggerFactory.getLogger(CassandraQueryBuilder.class);
 
@@ -65,6 +67,22 @@ public class CassandraQueryBuilder {
     public static Query getAll(String keyspace, String table) {
         session = cluster.connect(keyspace);
         return selectAll.from(keyspace, table);
+    }
+
+    public static List<Row> getAllForJvmId(String keyspace, String table, int jvmId) {
+        session = cluster.connect(keyspace);
+        //return select.from(keyspace, table).where().;
+        ResultSet result = session.execute("SELECT * from " + keyspace + "." + table + " WHERE jvm_id = " + jvmId + ";");
+        return result.all();
+    }
+
+    public static long getMethodId(String keyspace, String table, int jvmId, String methodName) {
+        session = cluster.connect(keyspace);
+        //return select.from(keyspace, table).where().;
+        ResultSet result = session.execute("SELECT * from " + keyspace + "." + table +
+                " WHERE jvm_id = " + jvmId +
+                " AND method_name = " + methodName + ";");
+        return result.all().get(0).getLong("method_id");
     }
 
     public static PreparedStatement getPreparedStatement(String keyspace, String cql) {

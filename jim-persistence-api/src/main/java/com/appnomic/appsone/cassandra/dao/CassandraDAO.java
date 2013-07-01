@@ -42,5 +42,11 @@ public class CassandraDAO {
         CassandraQueryBuilder.shutdown();
     }
 
+    protected List<Row> getAllForJvmId(String keyspace, String table, int jvmId) {
+        return CassandraQueryBuilder.getAllForJvmId(keyspace, table, jvmId);
+    }
 
+    protected long getMethodId(int jvmId, String methodName) {
+        return CassandraQueryBuilder.getMethodId(keyspace,table,jvmId,methodName);
+    }
 }
