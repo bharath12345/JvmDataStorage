@@ -47,6 +47,7 @@ public class CassandraDAO {
     }
 
     protected long getMethodId(int jvmId, String methodName) {
+        System.out.println("querying jvmid = " + jvmId + " method name = " + methodName);
         return CassandraQueryBuilder.getMethodId(keyspace,table,jvmId,methodName);
     }
 }

@@ -1,6 +1,7 @@
 package com.appnomic.appsone.cassandra.dao;
 
 import com.appnomic.appsone.cassandra.entity.JvmMethodMetricsRaw;
+import com.appnomic.appsone.cassandra.utility.Constants;
 import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Row;
@@ -20,26 +21,17 @@ import java.util.List;
 @Remote(JvmMethodMetricsDAO.class)
 public class JvmMethodMetricsDaoImpl extends CassandraDAO implements JvmMethodMetricsDAO {
 
-    enum ColumnNames {
-        jvm_id,
-        date,
-        day_time,
-        method_id,
-        invocations,
-        response_time
-    }
-
     public JvmMethodMetricsDaoImpl() {
-        keyspace = "JvmMethodMetrics";
-        table = "JvmMethodMetricsRaw";
+        keyspace = Constants.Keyspaces.JvmMethodMetrics.toString();
+        table = Constants.ColumnFamilies.JvmMethodMetricsRaw.toString();
 
         cqlInsert = "INSERT INTO "+ keyspace + "." + table + " (" +
-                ColumnNames.jvm_id.name() + ", " +
-                ColumnNames.date.name() + ", " +
-                ColumnNames.day_time.name() + ", " +
-                ColumnNames.method_id.name() + ", " +
-                ColumnNames.invocations.name() + ", " +
-                ColumnNames.response_time + ") " +
+                Constants.JvmMethodMetricsRaw.jvm_id.toString() + ", " +
+                Constants.JvmMethodMetricsRaw.date.toString() + ", " +
+                Constants.JvmMethodMetricsRaw.day_time.toString() + ", " +
+                Constants.JvmMethodMetricsRaw.method_id.toString() + ", " +
+                Constants.JvmMethodMetricsRaw.invocations.toString() + ", " +
+                Constants.JvmMethodMetricsRaw.response_time.toString() + ") " +
                 "VALUES (?, ?, ?, ?, ?, ?);";
 
         /*
@@ -67,12 +59,12 @@ public class JvmMethodMetricsDaoImpl extends CassandraDAO implements JvmMethodMe
         List<JvmMethodMetricsRaw> jvmMethodMetricsRawList = new ArrayList<JvmMethodMetricsRaw>();
         for(Row row: rows) {
             JvmMethodMetricsRaw jvmMethodMetricsRaw = new JvmMethodMetricsRaw();
-            jvmMethodMetricsRaw.setJvmId(row.getInt(ColumnNames.jvm_id.name()));
-            jvmMethodMetricsRaw.setDate(row.getString(ColumnNames.date.name()));
-            jvmMethodMetricsRaw.setDayTime(row.getInt(ColumnNames.day_time.name()));
-            jvmMethodMetricsRaw.setMethodId(row.getLong(ColumnNames.method_id.name()));
-            jvmMethodMetricsRaw.setInvocations(row.getLong(ColumnNames.invocations.name()));
-            jvmMethodMetricsRaw.setResponseTime(row.getFloat(ColumnNames.response_time.name()));
+            jvmMethodMetricsRaw.setJvmId(row.getInt(Constants.JvmMethodMetricsRaw.jvm_id.toString()));
+            jvmMethodMetricsRaw.setDate(row.getString(Constants.JvmMethodMetricsRaw.date.toString()));
+            jvmMethodMetricsRaw.setDayTime(row.getInt(Constants.JvmMethodMetricsRaw.day_time.toString()));
+            jvmMethodMetricsRaw.setMethodId(row.getLong(Constants.JvmMethodMetricsRaw.method_id.toString()));
+            jvmMethodMetricsRaw.setInvocations(row.getLong(Constants.JvmMethodMetricsRaw.invocations.toString()));
+            jvmMethodMetricsRaw.setResponseTime(row.getFloat(Constants.JvmMethodMetricsRaw.response_time.toString()));
             jvmMethodMetricsRawList.add(jvmMethodMetricsRaw);
         }
         return jvmMethodMetricsRawList;

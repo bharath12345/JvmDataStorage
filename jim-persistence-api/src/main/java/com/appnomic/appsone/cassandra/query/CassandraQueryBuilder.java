@@ -1,6 +1,9 @@
 package com.appnomic.appsone.cassandra.query;
 
+import com.appnomic.appsone.cassandra.utility.Constants;
 import com.datastax.driver.core.*;
+import com.datastax.driver.core.exceptions.AlreadyExistsException;
+import com.datastax.driver.core.exceptions.InvalidQueryException;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Select;
 import com.datastax.driver.core.querybuilder.Select.*;
@@ -77,12 +80,22 @@ public class CassandraQueryBuilder {
     }
 
     public static long getMethodId(String keyspace, String table, int jvmId, String methodName) {
+        System.out.println("Querying keyspace = " + keyspace + " column family = " + table);
+        cluster.shutdown();
+
+        connect();
         session = cluster.connect(keyspace);
+
         //return select.from(keyspace, table).where().;
-        ResultSet result = session.execute("SELECT * from " + keyspace + "." + table +
+        ResultSet result = session.execute("SELECT method_id from " + keyspace + "." + table +
                 " WHERE jvm_id = " + jvmId +
-                " AND method_name = " + methodName + ";");
-        return result.all().get(0).getLong("method_id");
+                " AND method_name = '" + methodName + "';");
+
+        if (result.all().size() > 0) {
+            return result.all().get(0).getLong("method_id");
+        } else {
+            return -1;
+        }
     }
 
     public static PreparedStatement getPreparedStatement(String keyspace, String cql) {
@@ -99,35 +112,57 @@ public class CassandraQueryBuilder {
     }
 
     public static void createKeyspaces() {
-        session = cluster.connect("system");
+        session = cluster.connect();
 
-        String JvmMethodMetrics = "JvmMethodMetrics";
-        session.execute("CREATE KEYSPACE " + JvmMethodMetrics + " WITH " +
-                "replication = {'class': 'SimpleStrategy', 'replication_factor' : 1};");
+        try {
+            session.execute("CREATE KEYSPACE " + Constants.Keyspaces.JvmMethodMetrics.toString() + " WITH " +
+                    "replication = {'class': 'SimpleStrategy', 'replication_factor' : 1};");
+        } catch (AlreadyExistsException e) {
+            System.out.println("Keyspace = " + Constants.Keyspaces.JvmMethodMetrics.toString() + " already exists");
+        }
         session.shutdown();
-
-        session = cluster.connect(JvmMethodMetrics);
     }
 
     public static void createTables() {
-        session.execute("CREATE TABLE JvmMethodIdNameMap (" +
-                "jvm_id varchar," +
-                "method_id bigint," +
-                "method_name varchar," +
-                "PRIMARY KEY (jvm_id));");
+        session = cluster.connect(Constants.Keyspaces.JvmMethodMetrics.toString());
 
-        session.execute("CREATE TABLE JvmMethodMetricsRaw (" +
-                "jvm_id varchar," +
-                "date varchar," +
-                "ts timestamp," +
-                "method_id bigint," +
-                "invocations bigint," +
-                "response_time bigint," +
-                "PRIMARY KEY (jvm_id, date));");
+        try {
+            session.execute("CREATE TABLE " + Constants.ColumnFamilies.JvmMethodIdNameMap.toString()
+                    + " (jvm_id int," +
+                    "method_id int," +
+                    "method_name varchar," +
+                    "PRIMARY KEY (jvm_id));");
+        } catch (AlreadyExistsException e) {
+            System.out.println("Table = " + Constants.ColumnFamilies.JvmMethodIdNameMap.toString() + " already exists");
+        }
+
+        try {
+            session.execute("CREATE TABLE " + Constants.ColumnFamilies.JvmMethodMetricsRaw.toString() + " (" +
+                    "jvm_id int," +
+                    "date varchar," +
+                    "day_time int," +
+                    "method_id int," +
+                    "invocations bigint," +
+                    "response_time float," +
+                    "PRIMARY KEY (jvm_id, date));");
+        } catch (AlreadyExistsException e) {
+            System.out.println("Keyspace = " + Constants.ColumnFamilies.JvmMethodMetricsRaw.toString() + " already exists");
+        }
+
     }
 
     public static void createIndexes() {
-        session.execute("CREATE INDEX jvm_method_name ON JvmMethodMetricsRaw (method_id);");
+        try {
+            session.execute("CREATE INDEX jvm_method_id ON " +
+                    Constants.ColumnFamilies.JvmMethodMetricsRaw.toString() + " (method_id);");
+
+            session.execute("CREATE INDEX jvm_method_name ON " +
+                    Constants.ColumnFamilies.JvmMethodIdNameMap.toString() + " (method_name);");
+
+        } catch (InvalidQueryException e) {
+            System.out.println("Index jvm_method_name on table = " +
+                    Constants.ColumnFamilies.JvmMethodMetricsRaw.toString() + " already exists");
+        }
     }
 
 }

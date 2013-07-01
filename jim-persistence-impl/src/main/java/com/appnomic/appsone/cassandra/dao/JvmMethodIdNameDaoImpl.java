@@ -1,5 +1,6 @@
 package com.appnomic.appsone.cassandra.dao;
 
+import com.appnomic.appsone.cassandra.utility.Constants;
 import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Row;
@@ -14,23 +15,17 @@ import java.util.List;
  * Time: 9:15 PM
  */
 @Stateless(mappedName = "JvmMethodIdNameDaoImpl")
-@Remote(JvmMethodMetricsDAO.class)
+@Remote(JvmMethodIdNameDAO.class)
 public class JvmMethodIdNameDaoImpl extends CassandraDAO implements JvmMethodIdNameDAO {
 
-    enum ColumnNames {
-        jvm_id,
-        method_id,
-        method_name
-    }
-
     public JvmMethodIdNameDaoImpl() {
-        keyspace = "JvmMethodMetrics";
-        table = "JvmMethodIdNameMap";
+        keyspace = Constants.Keyspaces.JvmMethodMetrics.toString();
+        table = Constants.ColumnFamilies.JvmMethodIdNameMap.toString();
 
         cqlInsert = "INSERT INTO "+ keyspace + "." + table + " (" +
-                ColumnNames.jvm_id.name() + ", " +
-                ColumnNames.method_id.name() + ", " +
-                ColumnNames.method_name + ") " +
+                Constants.JvmMethodIdNameMap.jvm_id.toString() + ", " +
+                Constants.JvmMethodIdNameMap.method_id.toString() + ", " +
+                Constants.JvmMethodIdNameMap.method_name.toString() + ") " +
                 "VALUES (?, ?, ?);";
 
         /*
@@ -44,7 +39,8 @@ public class JvmMethodIdNameDaoImpl extends CassandraDAO implements JvmMethodIdN
     }
 
     public long getMethodId(int jvmId, String methodName) {
-        return getMethodId(jvmId, methodName);
+
+        return super.getMethodId(jvmId, methodName);
     }
 
     public long setMethodIdName(int jvmId, String methodName) {
@@ -54,6 +50,7 @@ public class JvmMethodIdNameDaoImpl extends CassandraDAO implements JvmMethodIdN
         long maxMethodId = getMaxId(jvmId);
         boundStatement.bind(jvmId, methodName, maxMethodId);
 
+        //System.out.println("statement = " + boundStatement.);
         executeBoundStatement(boundStatement);
 
         finishBoundExecution();
@@ -64,7 +61,7 @@ public class JvmMethodIdNameDaoImpl extends CassandraDAO implements JvmMethodIdN
         List<Row> rows = getAllForJvmId(keyspace, table, jvmId);
         long maxMethodId = -1;
         for(Row row: rows) {
-            long methodId = row.getLong(ColumnNames.method_id.name());
+            long methodId = row.getLong(Constants.JvmMethodIdNameMap.method_id.toString());
             if(methodId > maxMethodId) {
                 maxMethodId = methodId;
             }

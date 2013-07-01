@@ -28,7 +28,7 @@ public class JvmMethodMetricsServiceImpl implements JvmMethodMetricsService {
 
     private static final Logger logger = LoggerFactory.getLogger(JvmMethodMetricsServiceImpl.class);
 
-    public static final String NAME = "com.appnomic.appsone.cassandra.service=JvmMethodMetrics";
+    public static final String NAME = "com.appnomic.appsone.cassandra:service=JvmMethodMetrics";
     private MBeanServer server;
     private ObjectName objectName;
 
@@ -44,9 +44,9 @@ public class JvmMethodMetricsServiceImpl implements JvmMethodMetricsService {
             objectName = new ObjectName(NAME);
             server = ManagementFactory.getPlatformMBeanServer();
             server.registerMBean(this, objectName);
-            logger.info("Registered " +  NAME + " Mbean");
+            System.out.println("Registered " +  NAME + " Mbean");
         } catch (Exception e) {
-            logger.error("Can't register " + NAME,e);
+            e.printStackTrace();
         }
     }
 
@@ -57,7 +57,7 @@ public class JvmMethodMetricsServiceImpl implements JvmMethodMetricsService {
                 server.unregisterMBean(objectName);
             }
         } catch (Exception e) {
-            logger.error("Can't unregister " + NAME,e);
+           e.printStackTrace();
         }
     }
 
@@ -68,7 +68,7 @@ public class JvmMethodMetricsServiceImpl implements JvmMethodMetricsService {
             methodId = jvmMethodIdNameDAO.setMethodIdName(jvmId, methodName);
         }
 
-        logger.info("method name = " + methodName + " method id = " + methodId);
+        System.out.println("method name = " + methodName + " method id = " + methodId);
 
         JvmMethodMetricsRaw jvmMethodMetricsRaw = new JvmMethodMetricsRaw();
         jvmMethodMetricsRaw.setJvmId(jvmId);

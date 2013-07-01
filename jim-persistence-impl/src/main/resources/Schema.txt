@@ -39,6 +39,8 @@ Table of Contents
             - Weekly  Roll-up: 350 days => 350 * 24 * 60 * 60 => 30,240,000
             - Monthly Roll-up: 720 days => 4 * 15,552,000     => 62,208,000
         * Is a Jvm-Name (some identifier) to JVM-ID table also ??
+        * Application centricity (App_id) both in-addition and as replacement to jvm_id - this usecase will require
+            separate tables
         * Should there be CLASS level stats also??
 
 *~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~
@@ -129,7 +131,7 @@ Table of Contents
           waited_time int,
           is_suspended boolean,
           PRIMARY KEY (jvm_id, date)
-        );
+    );
 
     CREATE INDEX jvm_thread_name ON JvmThreadMetricsRaw (thread_name);
     CREATE INDEX jvm_thread_id ON JvmThreadMetricsRaw (thread_id);
@@ -143,6 +145,7 @@ Table of Contents
     * Heap and Non-Heap - collect every minute
     * Should the Heap Memory table ALSO contain the thread count - the JvmMetrics table, with only thread-count as
         its data point is probably TOO MUCH meta for very little data
+    * No Roll-up for Non-Heap
 
     CREATE TABLE JvmHeapMemoryMetricsRaw (
               jvm_id int,
@@ -174,18 +177,25 @@ Table of Contents
     * Should data-source be collected every minute? Maybe 2-minutes is not bad after all - brings down the cost of collection
         on the agent side as well
 
+    CREATE TABLE JvmDatasourceIdNameMap (
+            jvm_id int,
+            datasource_id int,
+            datasource_name varchar,
+            PRIMARY KEY (jvm_id)
+        );
+
     CREATE TABLE JvmDataSourceMetricsRaw (
                   jvm_id int,
                   date varchar,
                   day_time int,
-                  datasource_name varchar,
-                  pool_size bigint,
-                  free_pool_size bigint,
-                  usetime bigint,
+                  datasource_id int,
+                  pool_size bigint,         // constant - useless
+                  free_pool_size bigint,    // has correlation with free_pool_size - better to store percentage of pool-size than brute numbers
+                  usetime bigint,           // avg query time over 1 minute
                   PRIMARY KEY (jvm_id, date)
                 );
 
-    CREATE INDEX jvm_datasource_name ON JvmDataSourceMetricsRaw (datasource_name);
+    CREATE INDEX jvm_datasource_name ON JvmDatasourceIdNameMap (datasource_name);
 
 *~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~
 
@@ -198,22 +208,24 @@ Table of Contents
     ~~~~~~~~~~~~~~~~~~~~~~
     CREATE TABLE JvmMethodIdNameMap (
         jvm_id int,
-        method_id bigint,
+        method_id int,
         method_name varchar,
         PRIMARY KEY (jvm_id)
     );
+
+    CREATE INDEX jvm_method_name ON JvmMethodIdNameMap (method_name);
 
     CREATE TABLE JvmMethodMetricsRaw (
         jvm_id int,
         date varchar,
         day_time int,
-        method_id bigint,
+        method_id int,
         invocations bigint,
         response_time float,
         PRIMARY KEY (jvm_id, date)
     );
 
-    CREATE INDEX jvm_method_name ON JvmMethodMetricsRaw (method_id);
+    CREATE INDEX jvm_method_id ON JvmMethodMetricsRaw (method_id);
 
     Trend Query Roll-up Tables
     ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -259,36 +271,40 @@ Table of Contents
     * data in these tables is kept sorted by maximum (response-time/invocations) to minimum
     * is a minute-wise table required in this case?
 
-    CREATE TABLE JvmMethodTrendResponseTimeHourly (
+    CREATE TABLE JvmMethodTopNHourly (
         jvm_id int,
-        method_id bigint,
         hour int,
-        response_time float
+        method_id_type varchar,      // Example: 100_RT => for method 100 response-time, 103_INV => for method 103 invocation count
+        response_time_map map<text, float>,
+        invocation_count_map map<text, long>,
+        PRIMARY KEY (jvm_id, hour)
     );
 
-    CREATE TABLE JvmMethodTrendInvocationHourly (
+    CREATE TABLE JvmMethodTopNDaily (
         jvm_id int,
-        method_id bigint,
-        hour int,
-        invocations bigint
+        day int,
+        method_id_type varchar,
+        response_time_map map<text, float>,
+        invocation_count_map map<text, long>,
+        PRIMARY KEY (jvm_id, hour)
     );
 
-    CREATE TABLE JvmMethodTrendResponseTimeDaily (
+    CREATE TABLE JvmMethodTopNWeekly (
+        jvm_id int,
+        week int,
+        method_id_type varchar,
+        response_time_map map<text, float>,
+        invocation_count_map map<text, long>,
+        PRIMARY KEY (jvm_id, hour)
     );
 
-    CREATE TABLE JvmMethodTrendInvocationDaily (
-    );
-
-    CREATE TABLE JvmMethodTrendResponseTimeWeekly (
-    );
-
-    CREATE TABLE JvmMethodTrendInvocationWeekly (
-    );
-
-    CREATE TABLE JvmMethodTrendResponseTimeMonthly (
-    );
-
-    CREATE TABLE JvmMethodTrendInvocationMonthly (
+    CREATE TABLE JvmMethodTopNMonthly (
+        jvm_id int,
+        month int,
+        method_id_type varchar,
+        response_time_map map<text, float>,
+        invocation_count_map map<text, long>,
+        PRIMARY KEY (jvm_id, hour)
     );
 
 

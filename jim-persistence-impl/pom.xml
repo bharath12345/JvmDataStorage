@@ -56,6 +56,12 @@
             <artifactId>cassandra-driver-core</artifactId>
             <version>${datastax.cassandra.native.driver}</version>
         </dependency>
+        <dependency>
+            <groupId>org.xerial.snappy</groupId>
+            <artifactId>snappy-java</artifactId>
+            <version>1.0.5</version>
+        </dependency>
+
 
         <!-- HECTOR ************************************************************************************************ -->
         <!--dependency>
@@ -75,6 +81,7 @@
             <artifactId>jboss-ejb-api_3.1_spec</artifactId>
             <scope>provided</scope>
         </dependency>
+
 
         <!-- JIM DEPENDENCY SERVICES ******************************************************************************* -->
         <dependency>
