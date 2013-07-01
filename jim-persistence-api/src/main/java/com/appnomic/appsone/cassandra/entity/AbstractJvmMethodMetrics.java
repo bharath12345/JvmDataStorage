@@ -1,21 +1,23 @@
 package com.appnomic.appsone.cassandra.entity;
 
+import java.io.Serializable;
+
 /**
  * User: bharadwaj
  * Date: 30/06/13
  * Time: 1:58 PM
  */
-public abstract class AbstractJvmMethodMetrics extends AbstractJimEntity {
+public abstract class AbstractJvmMethodMetrics extends AbstractJimEntity implements Serializable {
 
-    private long methodId;
+    private int methodId;
     private long invocations;
     private float responseTime;
 
-    public long getMethodId() {
+    public int getMethodId() {
         return methodId;
     }
 
-    public void setMethodId(long methodId) {
+    public void setMethodId(int methodId) {
         this.methodId = methodId;
     }
 

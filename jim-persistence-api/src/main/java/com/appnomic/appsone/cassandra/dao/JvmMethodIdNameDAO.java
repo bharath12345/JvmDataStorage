@@ -11,7 +11,7 @@ import javax.ejb.Remote;
 @Remote
 public interface JvmMethodIdNameDAO {
 
-    public long getMethodId(int jvmId, String methodName);
-    public long setMethodIdName(int jvmId, String methodName);
+    public int getMethodId(int jvmId, String methodName);
+    public int setMethodIdName(int jvmId, String methodName);
 
 }

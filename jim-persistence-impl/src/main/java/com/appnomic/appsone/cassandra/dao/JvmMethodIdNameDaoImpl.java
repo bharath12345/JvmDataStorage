@@ -27,23 +27,14 @@ public class JvmMethodIdNameDaoImpl extends CassandraDAO implements JvmMethodIdN
                 Constants.JvmMethodIdNameMap.method_id.toString() + ", " +
                 Constants.JvmMethodIdNameMap.method_name.toString() + ") " +
                 "VALUES (?, ?, ?);";
-
-        /*
-            CREATE TABLE JvmMethodIdNameMap (
-                jvm_id int,
-                method_id bigint,
-                method_name varchar,
-                PRIMARY KEY (jvm_id)
-            );
-         */
     }
 
-    public long getMethodId(int jvmId, String methodName) {
+    public int getMethodId(int jvmId, String methodName) {
 
         return super.getMethodId(jvmId, methodName);
     }
 
-    public long setMethodIdName(int jvmId, String methodName) {
+    public int setMethodIdName(int jvmId, String methodName) {
         PreparedStatement preparedStatement = getPreparedStatementNoShutdown(cqlInsert);
         BoundStatement boundStatement = new BoundStatement(preparedStatement);
 

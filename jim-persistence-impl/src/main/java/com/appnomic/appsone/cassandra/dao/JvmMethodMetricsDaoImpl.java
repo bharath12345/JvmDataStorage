@@ -25,7 +25,7 @@ public class JvmMethodMetricsDaoImpl extends CassandraDAO implements JvmMethodMe
         keyspace = Constants.Keyspaces.JvmMethodMetrics.toString();
         table = Constants.ColumnFamilies.JvmMethodMetricsRaw.toString();
 
-        cqlInsert = "INSERT INTO "+ keyspace + "." + table + " (" +
+        cqlInsert = "INSERT INTO " + keyspace + "." + table + " (" +
                 Constants.JvmMethodMetricsRaw.jvm_id.toString() + ", " +
                 Constants.JvmMethodMetricsRaw.date.toString() + ", " +
                 Constants.JvmMethodMetricsRaw.day_time.toString() + ", " +
@@ -33,19 +33,6 @@ public class JvmMethodMetricsDaoImpl extends CassandraDAO implements JvmMethodMe
                 Constants.JvmMethodMetricsRaw.invocations.toString() + ", " +
                 Constants.JvmMethodMetricsRaw.response_time.toString() + ") " +
                 "VALUES (?, ?, ?, ?, ?, ?);";
-
-        /*
-            Table definition -
-                CREATE TABLE JvmMethodMetricsRaw (
-                    jvm_id int,
-                    date varchar,
-                    day_time int,
-                    method_id bigint,
-                    invocations bigint,
-                    response_time float,
-                    PRIMARY KEY (jvm_id, date)
-                );
-         */
     }
 
     @Override
@@ -57,12 +44,12 @@ public class JvmMethodMetricsDaoImpl extends CassandraDAO implements JvmMethodMe
         //  doing a 'new' of so many objects which is a very expensive operation for a running query
 
         List<JvmMethodMetricsRaw> jvmMethodMetricsRawList = new ArrayList<JvmMethodMetricsRaw>();
-        for(Row row: rows) {
+        for (Row row : rows) {
             JvmMethodMetricsRaw jvmMethodMetricsRaw = new JvmMethodMetricsRaw();
             jvmMethodMetricsRaw.setJvmId(row.getInt(Constants.JvmMethodMetricsRaw.jvm_id.toString()));
             jvmMethodMetricsRaw.setDate(row.getString(Constants.JvmMethodMetricsRaw.date.toString()));
             jvmMethodMetricsRaw.setDayTime(row.getInt(Constants.JvmMethodMetricsRaw.day_time.toString()));
-            jvmMethodMetricsRaw.setMethodId(row.getLong(Constants.JvmMethodMetricsRaw.method_id.toString()));
+            jvmMethodMetricsRaw.setMethodId(row.getInt(Constants.JvmMethodMetricsRaw.method_id.toString()));
             jvmMethodMetricsRaw.setInvocations(row.getLong(Constants.JvmMethodMetricsRaw.invocations.toString()));
             jvmMethodMetricsRaw.setResponseTime(row.getFloat(Constants.JvmMethodMetricsRaw.response_time.toString()));
             jvmMethodMetricsRawList.add(jvmMethodMetricsRaw);
@@ -72,31 +59,36 @@ public class JvmMethodMetricsDaoImpl extends CassandraDAO implements JvmMethodMe
 
     @Override
     public List<JvmMethodMetricsRaw> findAllInTimeRange(long epochStartTime, long epochEndTime) {
-        return null;  
+        return null;
     }
 
     @Override
     public List<JvmMethodMetricsRaw> findForJvm(int jvmId) {
-        return null;  
+        return null;
     }
 
     @Override
     public List<JvmMethodMetricsRaw> findInTimeRangeForJvm(int jvmId, long epochStartTime, long epochEndTime) {
-        return null;  
+        return null;
     }
 
     @Override
     public void persistSingle(JvmMethodMetricsRaw jvmMethodMetricsRaw) {
-        PreparedStatement preparedStatement = getPreparedStatementNoShutdown(cqlInsert);
-        BoundStatement boundStatement = new BoundStatement(preparedStatement);
+        System.out.println("Persisting method data = " + jvmMethodMetricsRaw.toString());
+        try {
+            PreparedStatement preparedStatement = getPreparedStatementNoShutdown(cqlInsert);
+            BoundStatement boundStatement = new BoundStatement(preparedStatement);
 
-        boundStatement.bind(jvmMethodMetricsRaw.getJvmId(), jvmMethodMetricsRaw.getDate(),
-            jvmMethodMetricsRaw.getDayTime(), jvmMethodMetricsRaw.getMethodId(),
-            jvmMethodMetricsRaw.getInvocations(), jvmMethodMetricsRaw.getResponseTime());
+            boundStatement.bind(jvmMethodMetricsRaw.getJvmId(), jvmMethodMetricsRaw.getDate(),
+                    jvmMethodMetricsRaw.getDayTime(), jvmMethodMetricsRaw.getMethodId(),
+                    jvmMethodMetricsRaw.getInvocations(), jvmMethodMetricsRaw.getResponseTime());
 
-        executeBoundStatement(boundStatement);
+            executeBoundStatement(boundStatement);
 
-        finishBoundExecution();
+            finishBoundExecution();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -104,7 +96,7 @@ public class JvmMethodMetricsDaoImpl extends CassandraDAO implements JvmMethodMe
         PreparedStatement preparedStatement = getPreparedStatementNoShutdown(cqlInsert);
         BoundStatement boundStatement = new BoundStatement(preparedStatement);
 
-        for(JvmMethodMetricsRaw jvmMethodMetricsRaw: jvmMethodMetricsRawList) {
+        for (JvmMethodMetricsRaw jvmMethodMetricsRaw : jvmMethodMetricsRawList) {
             boundStatement.bind(jvmMethodMetricsRaw.getJvmId(), jvmMethodMetricsRaw.getDate(),
                     jvmMethodMetricsRaw.getDayTime(), jvmMethodMetricsRaw.getMethodId(),
                     jvmMethodMetricsRaw.getInvocations(), jvmMethodMetricsRaw.getResponseTime());

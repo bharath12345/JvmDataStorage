@@ -44,7 +44,7 @@ public class JvmMethodMetricsServiceImpl implements JvmMethodMetricsService {
             objectName = new ObjectName(NAME);
             server = ManagementFactory.getPlatformMBeanServer();
             server.registerMBean(this, objectName);
-            System.out.println("Registered " +  NAME + " Mbean");
+            System.out.println("Registered " + NAME + " Mbean");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -63,7 +63,7 @@ public class JvmMethodMetricsServiceImpl implements JvmMethodMetricsService {
 
     @Override
     public void saveMethodStat(int jvmId, long epochTime, String methodName, long invocationCount, float responseTime) {
-        long methodId = jvmMethodIdNameDAO.getMethodId(jvmId, methodName);
+        int methodId = jvmMethodIdNameDAO.getMethodId(jvmId, methodName);
         if(methodId == -1) {
             methodId = jvmMethodIdNameDAO.setMethodIdName(jvmId, methodName);
         }
@@ -75,9 +75,18 @@ public class JvmMethodMetricsServiceImpl implements JvmMethodMetricsService {
         jvmMethodMetricsRaw.setMethodId(methodId);
         jvmMethodMetricsRaw.setInvocations(invocationCount);
         jvmMethodMetricsRaw.setResponseTime(responseTime);
-        jvmMethodMetricsRaw.setDate(CassandraDateTime.getDate(epochTime));
-        jvmMethodMetricsRaw.setDayTime(CassandraDateTime.getDayTime(epochTime));
-        jvmMethodMetricsDAO.persistSingle(jvmMethodMetricsRaw);
+
+        String date = CassandraDateTime.getDate(epochTime);
+        jvmMethodMetricsRaw.setDate(date);
+        int dayTime = CassandraDateTime.getDayTime(epochTime);
+        jvmMethodMetricsRaw.setDayTime(dayTime);
+        System.out.println("date = " + date + " dayTime = " + dayTime);
+
+        try {
+            jvmMethodMetricsDAO.persistSingle(jvmMethodMetricsRaw);
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
     }
 
 }

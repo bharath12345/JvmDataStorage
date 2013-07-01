@@ -5,12 +5,10 @@ import com.datastax.driver.core.*;
 import com.datastax.driver.core.exceptions.AlreadyExistsException;
 import com.datastax.driver.core.exceptions.InvalidQueryException;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
-import com.datastax.driver.core.querybuilder.Select;
 import com.datastax.driver.core.querybuilder.Select.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.InputStream;
 import java.util.List;
 import java.util.Properties;
 
@@ -79,7 +77,7 @@ public class CassandraQueryBuilder {
         return result.all();
     }
 
-    public static long getMethodId(String keyspace, String table, int jvmId, String methodName) {
+    public static int getMethodId(String keyspace, String table, int jvmId, String methodName) {
         System.out.println("Querying keyspace = " + keyspace + " column family = " + table);
         cluster.shutdown();
 
@@ -92,7 +90,7 @@ public class CassandraQueryBuilder {
                 " AND method_name = '" + methodName + "';");
 
         if (result.all().size() > 0) {
-            return result.all().get(0).getLong("method_id");
+            return result.all().get(0).getInt("method_id");
         } else {
             return -1;
         }
