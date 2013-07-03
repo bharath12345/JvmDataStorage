@@ -45,6 +45,7 @@ public class JvmMethodMetricsDaoImpl extends CassandraDAO implements JvmMethodMe
 
         List<JvmMethodMetricsRaw> jvmMethodMetricsRawList = new ArrayList<JvmMethodMetricsRaw>();
         for (Row row : rows) {
+
             JvmMethodMetricsRaw jvmMethodMetricsRaw = new JvmMethodMetricsRaw();
             jvmMethodMetricsRaw.setJvmId(row.getInt(Constants.JvmMethodMetricsRaw.jvm_id.toString()));
             jvmMethodMetricsRaw.setDate(row.getString(Constants.JvmMethodMetricsRaw.date.toString()));

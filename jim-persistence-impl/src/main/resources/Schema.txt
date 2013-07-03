@@ -42,6 +42,13 @@ Table of Contents
         * Application centricity (App_id) both in-addition and as replacement to jvm_id - this usecase will require
             separate tables
         * Should there be CLASS level stats also??
+        * Aggregate tables for JVM and Method
+        * Export and Import usecases
+        * Instead of threads for different Roll-up tables use continuously running cache stores - in-memory
+            aggregation for all roll-ups
+        * Store of arguments etc
+        * Usecases to add/remove columns from CLI - and post doing that start pumping data - QueryBuilder needs
+            to be built for this usecase
 
 *~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~
 
